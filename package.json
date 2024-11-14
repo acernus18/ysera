@@ -2,14 +2,14 @@
   "name": "ysera",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/index.js",
+  "main": "dist/go-svg-builder.js",
   "scripts": {
-    "build": "tsc"
+    "start": "tsc && node dist/go-svg-builder.js",
+    "gen_svg": "tsc && node dist/go-svg-builder.js out/data.json > out/test.svg"
   },
-  "dependencies": {},
   "devDependencies": {
+    "@types/node": "^22.9.0",
     "typescript": "^5.5.3"
   },
   "private": true
 }
-
