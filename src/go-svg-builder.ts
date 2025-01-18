@@ -1,3 +1,5 @@
+import * as fs from "node:fs";
+
 class CoordinateSystem {
 
     private static readonly HorizontalLabels = [
@@ -232,3 +234,7 @@ export class GoSVGBuilder {
         return this.builder.join("");
     };
 }
+
+const builder = new GoSVGBuilder(JSON.parse(fs.readFileSync(process.argv[2], "utf8")) as GoSVGBuilderConfig);
+
+console.log(builder.generate());
