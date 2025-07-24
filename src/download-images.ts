@@ -17,11 +17,20 @@ function getFilename(url: string, handler?: FilenameHandler): string {
     return filename;
 }
 
-async function download(url: string, dest: string, handler?: FilenameHandler): Promise<void> {
+async function downloadImages(url: string, dest: string, handler?: FilenameHandler): Promise<void> {
     if (!fs.existsSync(dest)) {
         await mkdir(dest);
     }
-    const response = await fetch(url);
+
+    console.log("Downloading ", url);
+    const response = await fetch(url, {
+        headers: new Headers({
+            "authority": "i2.nhentai.net",
+            "method": "GET",
+            "path": "/galleries/3251909/1.webp",
+            "scheme": "https",
+        }),
+    });
     const destination = path.resolve(dest, getFilename(url, handler));
     // [Refer]: https://nodejs.org/api/fs.html#file-system-flags
     const fileStream = fs.createWriteStream(destination, {flags: "w"});
@@ -31,14 +40,14 @@ async function download(url: string, dest: string, handler?: FilenameHandler): P
 }
 
 const main = async () => {
-    const url = process.argv[2] ?? "";
-    const dist = process.argv[3] ?? "";
-    const count = process.argv[4] ? parseInt(process.argv[4]) : 0;
+    const url = process.argv[2] ?? "https://i2.nhentai.net/galleries/3251909";
+    const dist = process.argv[3] ?? "/Users/maples/Downloads/temp";
+    const count = process.argv[4] ? parseInt(process.argv[4]) : 107;
     if (url === "" || dist === "" || count === 0) {
         return;
     }
     const startIndex = process.argv[5] ? parseInt(process.argv[5]) : 0;
-    const contentType = process.argv[6] ?? "jpg";
+    const contentType = process.argv[6] ?? "webp";
     const handler = (name: string) => {
         const result = /(\d+)\.jpg/.exec(name);
         if (result === null) {
@@ -48,7 +57,7 @@ const main = async () => {
     };
 
     for (let i = 0; i < count; i++) {
-        await download(`${url}/${i + 1}.${contentType}`, dist, handler);
+        await downloadImages(`${url}/${i + 1}.${contentType}`, dist, handler);
     }
 };
 
