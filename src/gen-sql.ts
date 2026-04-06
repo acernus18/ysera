@@ -12,6 +12,17 @@ for (const item of data) {
     content.push(`update inventory_items set properties = JSON_SET(properties, "$.H", ${item["height"]}) where unique_id = "${item["id"]}" and current_weight = ${item["cts"]};`);
     content.push(`update inventory_items set properties = JSON_SET(properties, "$.Shape", "${item["shape"]}") where unique_id = "${item["id"]}" and current_weight = ${item["cts"]};`);
     content.push(`update inventory_items set sale_price = ${item["price"]} where unique_id = "${item["id"]}" and current_weight = ${item["cts"]};`);
+
+    // content.push(`-- Updating ${item["id"]} -${genSql++}`);
+    // content.push(`update inventory_items set properties = JSON_SET(properties, "$.DC", ${item["DC"]}) where unique_id = "${item["id"]}";`);
+    // content.push(`update inventory_items set properties = JSON_SET(properties, "$.DQ", ${item["DQ"]}) where unique_id = "${item["id"]}";`);
+    // content.push(`update inventory_items set properties = JSON_SET(properties, "$.GW", ${item["GW"]}) where unique_id = "${item["id"]}";`);
+    // if (item["JSize"] === "") {
+    //     continue;
+    // }
+
+    // content.push(`update inventory_items set properties = JSON_SET(properties, "$.JSize", ${parseInt(item["JSize"])}) where unique_id = "${item["id"]}";`);
+    // content.push(`update inventory_items set sale_price = ${item["price"]} where unique_id = "${item["id"]}" and current_weight = ${item["cts"]};`);
 }
 content.push("commit;");
 writeFileSync("/Users/maples/Documents/Repository/ysera/data/data.sql", content.join("\n"));

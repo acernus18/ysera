@@ -1,14 +1,10 @@
+import fetch from "node-fetch";
 import path from "node:path";
 import * as fs from "node:fs";
 import {mkdir} from "node:fs/promises";
-import {Readable} from "node:stream";
-import {finished} from "node:stream/promises";
+import {HttpsProxyAgent} from "https-proxy-agent";
 
-import {ReadableStream} from "stream/web";
-
-type FilenameHandler = (file: string) => string;
-
-function getFilename(url: string, handler?: FilenameHandler): string {
+function getFilename(url: string, handler?: (file: string) => string): string {
     const elements = url.split("/");
     const filename = elements[elements.length - 1];
     if (handler) {
@@ -17,48 +13,33 @@ function getFilename(url: string, handler?: FilenameHandler): string {
     return filename;
 }
 
-async function downloadImages(url: string, dest: string, handler?: FilenameHandler): Promise<void> {
+async function download(url: string, dest: string, agent?: HttpsProxyAgent<string>): Promise<void> {
+    const response = await fetch(url, {
+        headers: new Headers({
+            "authority": "i3.nhentai.net",
+            "scheme": "https",
+        }),
+        agent: agent ?? undefined,
+    });
+}
+
+export async function downloadImages(url: string, dest: string, handler?: (file: string) => string): Promise<void> {
     if (!fs.existsSync(dest)) {
         await mkdir(dest);
     }
-
+    const agent = new HttpsProxyAgent("http://127.0.0.1:7890");
     console.log("Downloading ", url);
     const response = await fetch(url, {
         headers: new Headers({
-            "authority": "i2.nhentai.net",
-            "method": "GET",
-            "path": "/galleries/3251909/1.webp",
+            "authority": "i3.nhentai.net",
             "scheme": "https",
         }),
+        agent: agent,
     });
     const destination = path.resolve(dest, getFilename(url, handler));
     // [Refer]: https://nodejs.org/api/fs.html#file-system-flags
     const fileStream = fs.createWriteStream(destination, {flags: "w"});
     if (response.body !== null) {
-        await finished(Readable.fromWeb(response.body as ReadableStream).pipe(fileStream));
+        response.body.pipe(fileStream);
     }
 }
-
-const main = async () => {
-    const url = process.argv[2] ?? "https://i2.nhentai.net/galleries/3251909";
-    const dist = process.argv[3] ?? "/Users/maples/Downloads/temp";
-    const count = process.argv[4] ? parseInt(process.argv[4]) : 107;
-    if (url === "" || dist === "" || count === 0) {
-        return;
-    }
-    const startIndex = process.argv[5] ? parseInt(process.argv[5]) : 0;
-    const contentType = process.argv[6] ?? "webp";
-    const handler = (name: string) => {
-        const result = /(\d+)\.jpg/.exec(name);
-        if (result === null) {
-            return name;
-        }
-        return `${parseInt(result[1]) + startIndex}.${contentType}`;
-    };
-
-    for (let i = 0; i < count; i++) {
-        await downloadImages(`${url}/${i + 1}.${contentType}`, dist, handler);
-    }
-};
-
-main();

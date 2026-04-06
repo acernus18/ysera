@@ -26,11 +26,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.downloadImages = downloadImages;
 const node_path_1 = __importDefault(require("node:path"));
 const fs = __importStar(require("node:fs"));
 const promises_1 = require("node:fs/promises");
-const node_stream_1 = require("node:stream");
-const promises_2 = require("node:stream/promises");
+const https_proxy_agent_1 = require("https-proxy-agent");
+const node_fetch_1 = __importDefault(require("node-fetch"));
 function getFilename(url, handler) {
     const elements = url.split("/");
     const filename = elements[elements.length - 1];
@@ -39,37 +40,49 @@ function getFilename(url, handler) {
     }
     return filename;
 }
-async function download(url, dest, handler) {
+async function downloadImages(url, dest, handler) {
     if (!fs.existsSync(dest)) {
         await (0, promises_1.mkdir)(dest);
     }
-    const response = await fetch(url);
+    const agent = new https_proxy_agent_1.HttpsProxyAgent("http://127.0.0.1:7890");
+    console.log("Downloading ", url);
+    const response = await (0, node_fetch_1.default)(url, {
+        headers: new Headers({
+            "authority": "i3.nhentai.net",
+            "method": "GET",
+            "path": "/galleries/3222212/3.webp",
+            "scheme": "https",
+        }),
+        agent: agent,
+    });
     const destination = node_path_1.default.resolve(dest, getFilename(url, handler));
     // [Refer]: https://nodejs.org/api/fs.html#file-system-flags
     const fileStream = fs.createWriteStream(destination, { flags: "w" });
     if (response.body !== null) {
-        await (0, promises_2.finished)(node_stream_1.Readable.fromWeb(response.body).pipe(fileStream));
+        // await finished(Readable.fromWeb(response.body as ReadableStream).pipe(fileStream));
+        response.body.pipe(fileStream);
     }
 }
-const main = async () => {
-    var _a, _b, _c;
-    const url = (_a = process.argv[2]) !== null && _a !== void 0 ? _a : "";
-    const dist = (_b = process.argv[3]) !== null && _b !== void 0 ? _b : "";
-    const count = process.argv[4] ? parseInt(process.argv[4]) : 0;
-    if (url === "" || dist === "" || count === 0) {
-        return;
-    }
-    const startIndex = process.argv[5] ? parseInt(process.argv[5]) : 0;
-    const contentType = (_c = process.argv[6]) !== null && _c !== void 0 ? _c : "jpg";
-    const handler = (name) => {
-        const result = /(\d+)\.jpg/.exec(name);
-        if (result === null) {
-            return name;
-        }
-        return `${parseInt(result[1]) + startIndex}.${contentType}`;
-    };
-    for (let i = 0; i < count; i++) {
-        await download(`${url}/${i + 1}.${contentType}`, dist, handler);
-    }
-};
-main();
+// const main = async () => {
+//     const url = process.argv[2] ?? "https://i2.nhentai.net/galleries/3251909";
+//     const dist = process.argv[3] ?? "/Users/maples/Downloads/temp";
+//     const count = process.argv[4] ? parseInt(process.argv[4]) : 107;
+//     if (url === "" || dist === "" || count === 0) {
+//         return;
+//     }
+//     const startIndex = process.argv[5] ? parseInt(process.argv[5]) : 0;
+//     const contentType = process.argv[6] ?? "webp";
+//     const handler = (name: string) => {
+//         const result = /(\d+)\.jpg/.exec(name);
+//         if (result === null) {
+//             return name;
+//         }
+//         return `${parseInt(result[1]) + startIndex}.${contentType}`;
+//     };
+//
+//     for (let i = 0; i < count; i++) {
+//         await downloadImages(`${url}/${i + 1}.${contentType}`, dist, handler);
+//     }
+// };
+//
+// main();
