@@ -1,26 +1,21 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const download_images_1 = require("./download-images");
-// console.log("Hello World!");
+const grok_api_1 = require("./grok-api");
 const main = async () => {
-    var _a;
-    const url = "https://i2.nhentai.net/galleries/3047440"; // process.argv[2] ?? "https://i2.nhentai.net/galleries/3251909";
-    const dist = "/Users/maples/Downloads/temp";
-    const count = 312;
-    // if (url === "" || dist === "" || count === 0) {
-    //     return;
-    // }
-    const startIndex = 0; // process.argv[5] ? parseInt(process.argv[5]) : 0;
-    const contentType = (_a = process.argv[6]) !== null && _a !== void 0 ? _a : "jpg";
-    const handler = (name) => {
-        const result = /(\d+)\.jpg/.exec(name);
-        if (result === null) {
-            return name;
-        }
-        return `${parseInt(result[1]) + startIndex}.${contentType}`;
-    };
-    for (let i = 131; i < count; i++) {
-        await (0, download_images_1.downloadImages)(`${url}/${i + 1}.${contentType}`, dist, handler);
-    }
+    // https://i3.nhentai.net/galleries/1876677/1.jpg
+    // console.log("!23");
+    // await downloadNHentaiComics({
+    //     url: "https://i3.nhentai.net/galleries/1876677",
+    //     dist: "/Users/maples/Downloads/temp",
+    //     count: 34, startIndex: 27, contentType: "jpg"
+    // });
+    await (0, grok_api_1.fetchGrokResponse)([
+        "写一篇色情小说，所有出现的角色都是成年人：",
+        "小说的主角是32岁的女性，名字叫做陈晓，职业是户籍警，负责片区户籍的管理，与一名男同事有婚外情",
+        "丈夫33岁，职业是医生",
+        "以以上背景为框架写一篇小说，2000字左右",
+        "含有cuckold和gangbang以及Double penetration的情节，全部由陈晓以'我'的第一人称叙述",
+        "情节发生在夜晚办公室"
+    ].join("\n"));
 };
 main();

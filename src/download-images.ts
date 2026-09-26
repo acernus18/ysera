@@ -43,3 +43,29 @@ export async function downloadImages(url: string, dest: string, handler?: (file:
         response.body.pipe(fileStream);
     }
 }
+
+interface NHentaiConfig {
+    url: string;
+    dist: string;
+    count: number;
+    startIndex: number;
+    contentType: string;
+}
+
+export async function downloadNHentaiComics(config: NHentaiConfig) {
+    for (let i = config.startIndex; i < config.count; i++) {
+        console.log(`Downloading ${config.url}`);
+        await downloadImages(`${config.url}/${i + 1}.${config.contentType}`, config.dist);
+    }
+}
+
+// const main = async () => {
+//     // https://i2.nhentai.net/galleries/2290290/8.jpg
+//     await downloadNHentaiComics({
+//         url: "https://i2.nhentai.net/galleries/2290290",
+//         dist: "/Users/maples/Downloads/temp",
+//         count: 218, startIndex: 150, contentType: "jpg"
+//     });
+// };
+//
+// main();

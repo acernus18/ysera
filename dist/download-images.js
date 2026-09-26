@@ -27,11 +27,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.downloadImages = downloadImages;
+exports.downloadNHentaiComics = downloadNHentaiComics;
+const node_fetch_1 = __importDefault(require("node-fetch"));
 const node_path_1 = __importDefault(require("node:path"));
 const fs = __importStar(require("node:fs"));
 const promises_1 = require("node:fs/promises");
 const https_proxy_agent_1 = require("https-proxy-agent");
-const node_fetch_1 = __importDefault(require("node-fetch"));
 function getFilename(url, handler) {
     const elements = url.split("/");
     const filename = elements[elements.length - 1];
@@ -39,6 +40,15 @@ function getFilename(url, handler) {
         return handler(filename);
     }
     return filename;
+}
+async function download(url, dest, agent) {
+    const response = await (0, node_fetch_1.default)(url, {
+        headers: new Headers({
+            "authority": "i3.nhentai.net",
+            "scheme": "https",
+        }),
+        agent: agent !== null && agent !== void 0 ? agent : undefined,
+    });
 }
 async function downloadImages(url, dest, handler) {
     if (!fs.existsSync(dest)) {
@@ -49,8 +59,6 @@ async function downloadImages(url, dest, handler) {
     const response = await (0, node_fetch_1.default)(url, {
         headers: new Headers({
             "authority": "i3.nhentai.net",
-            "method": "GET",
-            "path": "/galleries/3222212/3.webp",
             "scheme": "https",
         }),
         agent: agent,
@@ -59,30 +67,22 @@ async function downloadImages(url, dest, handler) {
     // [Refer]: https://nodejs.org/api/fs.html#file-system-flags
     const fileStream = fs.createWriteStream(destination, { flags: "w" });
     if (response.body !== null) {
-        // await finished(Readable.fromWeb(response.body as ReadableStream).pipe(fileStream));
         response.body.pipe(fileStream);
     }
 }
+async function downloadNHentaiComics(config) {
+    for (let i = config.startIndex; i < config.count; i++) {
+        console.log(`Downloading ${config.url}`);
+        await downloadImages(`${config.url}/${i + 1}.${config.contentType}`, config.dist);
+    }
+}
 // const main = async () => {
-//     const url = process.argv[2] ?? "https://i2.nhentai.net/galleries/3251909";
-//     const dist = process.argv[3] ?? "/Users/maples/Downloads/temp";
-//     const count = process.argv[4] ? parseInt(process.argv[4]) : 107;
-//     if (url === "" || dist === "" || count === 0) {
-//         return;
-//     }
-//     const startIndex = process.argv[5] ? parseInt(process.argv[5]) : 0;
-//     const contentType = process.argv[6] ?? "webp";
-//     const handler = (name: string) => {
-//         const result = /(\d+)\.jpg/.exec(name);
-//         if (result === null) {
-//             return name;
-//         }
-//         return `${parseInt(result[1]) + startIndex}.${contentType}`;
-//     };
-//
-//     for (let i = 0; i < count; i++) {
-//         await downloadImages(`${url}/${i + 1}.${contentType}`, dist, handler);
-//     }
+//     // https://i2.nhentai.net/galleries/2290290/8.jpg
+//     await downloadNHentaiComics({
+//         url: "https://i2.nhentai.net/galleries/2290290",
+//         dist: "/Users/maples/Downloads/temp",
+//         count: 218, startIndex: 150, contentType: "jpg"
+//     });
 // };
 //
 // main();
